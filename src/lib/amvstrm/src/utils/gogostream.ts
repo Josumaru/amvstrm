@@ -5,7 +5,8 @@ import { AnyNode, CheerioAPI, load } from "cheerio";
 // @ts-ignore
 import CryptoJS from "crypto-js";
 
-const BASE_URL = "https://anitaku.pe/";
+const BASE_URL = `${process.env.NEXT_PUBLIC_GOGOANIME_PROXY}/`;
+
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36";
 const keys = {

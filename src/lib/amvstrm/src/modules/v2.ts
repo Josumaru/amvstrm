@@ -17,7 +17,17 @@ import {
 } from "../types/v2";
 import { env } from "../utils/env";
 import { SeasonList } from "../types/v1";
-import customProviderData from "../utils/processCustomData";
+// import customProviderData from "../utils/processCustomData";
+
+const customProviderData = [
+  {
+    id: 153658,
+    idGogo: "haikyuu-movie-gomisuteba-no-kessen",
+    idGogoDub: "haikyuu-movie-gomisuteba-no-kessen-dub",
+    idZoro: "haikyuu-movie-gomisuteba-no-kessen",
+    idPahe: "",
+  },
+];
 
 interface IDProvider {
   id?: number;
