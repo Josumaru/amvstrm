@@ -124,6 +124,14 @@ export interface AnimeResult {
     rating: number;
     releaseDate: number;
     type: string;
+    trailer: {
+      id: string;
+      site: string;
+      thumbnail: string;
+    },
+    season: string;
+    seasonYear: number;
+    status: string;
   }[];
 }
 

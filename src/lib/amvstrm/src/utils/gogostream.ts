@@ -6,7 +6,7 @@ import { AnyNode, CheerioAPI, load } from "cheerio";
 import CryptoJS from "crypto-js";
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_GOGOANIME_PROXY}/`;
-
+const PROXY_URL = `${process.env.NEXT_PUBLIC_REVERSE_PROXY}/proxy`;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36";
 const keys = {
@@ -19,10 +19,9 @@ let referer = "";
 export const extract = async (id: string) => {
   let datapg: string | AnyNode | AnyNode[] | Buffer;
   try {
-    const datapage = await axios.get(`${BASE_URL}` + id, {
-      headers: {
-        "User-Agent": USER_AGENT,
-      },
+    const targetUrl = `${process.env.NEXT_PUBLIC_GOGOANIME_PROXY}/${id}`;
+    const datapage = await axios.get(PROXY_URL, {
+      params: { url: targetUrl },
     });
     datapg = datapage.data;
   } catch (error: any) {
@@ -42,11 +41,10 @@ export const extract = async (id: string) => {
   const server: any = x$("#load_anime > div > div > iframe")?.attr("src");
   const videoUrl = new URL(server);
   referer = videoUrl.href;
-  const res = await axios.get(videoUrl.href, {
-    headers: {
-      "User-Agent": USER_AGENT,
-    },
+  const res = await axios.get(PROXY_URL, {
+    params: { url: videoUrl.href },
   });
+
   const $ = load(res.data);
   const iframeUrls = [];
   const liElements = $("#list-server-more > ul > li");
@@ -74,14 +72,25 @@ export const extract = async (id: string) => {
     $,
     videoUrl.searchParams.get("id") ?? ""
   );
+
+  // const encryptedDatas = await axios.get(
+  //   `${videoUrl.protocol}//${videoUrl.hostname}/encrypt-ajax.php?${encyptedParams}`,
+  //   {
+  //     headers: {
+  //       "X-Requested-With": "XMLHttpRequest",
+  //     },
+  //   }
+  // );
+
   const encryptedData = await axios.get(
-    `${videoUrl.protocol}//${videoUrl.hostname}/encrypt-ajax.php?${encyptedParams}`,
-    {
-      headers: {
-        "X-Requested-With": "XMLHttpRequest",
-      },
-    }
+    `${PROXY_URL}?url=${encodeURIComponent(
+      `${videoUrl.protocol}//${videoUrl.hostname}/encrypt-ajax.php?${encodeURIComponent(encyptedParams)}`
+    )}&headers=${encodeURIComponent(
+      JSON.stringify({ "X-Requested-With": "XMLHttpRequest" })
+    )}`
   );
+  
+
   const decryptedData = await decryptAjaxData(encryptedData.data.data);
   if (!decryptedData.source)
     throw new Error("No source found. Try a different server.");
@@ -121,9 +130,13 @@ export const generateEncryptedAjaxParams = async (
     iv: keys.iv,
   });
   const scriptValue = $("script[data-name='episode']").data().value;
-  const decryptedToken = CryptoJS.AES.decrypt(scriptValue as unknown as string, keys.key, {
-    iv: keys.iv,
-  }).toString(CryptoJS.enc.Utf8);
+  const decryptedToken = CryptoJS.AES.decrypt(
+    scriptValue as unknown as string,
+    keys.key,
+    {
+      iv: keys.iv,
+    }
+  ).toString(CryptoJS.enc.Utf8);
   return `id=${encryptedKey}&alias=${id}&${decryptedToken}`;
 };
 

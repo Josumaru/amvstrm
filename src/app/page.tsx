@@ -1,7 +1,9 @@
 "use client";
+import PopularSwiper from "@/components/home/popular-swiper/popular-swiper";
 import v2 from "@/lib/amvstrm/src/modules/v2";
 import { AnimeResult } from "@/lib/amvstrm/src/types/v2";
 import { NextPage } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -9,20 +11,22 @@ interface Props {}
 
 const Page: NextPage<Props> = ({}) => {
   const [populars, setPopulars] = useState<AnimeResult | null>(null);
+  const [trendings, setTrending] = useState<AnimeResult | null>(null);
   useEffect(() => {
-    const getPopular = async (page: number) => {
-      const response = await v2.Trending(1, 10);
-      console.log(response);
-      setPopulars(response);
+    const getData = async () => {
+      const popularsData = await v2.Popular(1, 20);
+      const trendingsData = await v2.Trending(1, 20);
+      setPopulars(popularsData);
+      setTrending(trendingsData);
     };
-    getPopular(1);
+    getData();
   }, []);
   return (
-    <div>
-      {populars?.results.map((popular) => <Link key={popular.id} href={`/${popular.id}`}>
-        <p className="hover:text-red-500">{popular.title.userPreferred}</p>
-      </Link>
-      )}
+    <div className="w-full h-full">
+      {populars &&<PopularSwiper data={populars}/>}
+      {trendings && trendings.results.map((result) => <Link href={`/${result.id}`}>
+        <p className="hover:text-red-500 pb-2">{result.title.userPreferred}</p>
+      </Link>)}
     </div>
   );
 };
